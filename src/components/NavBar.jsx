@@ -12,11 +12,26 @@ export default function NavBar() {
       <NavLink to="/" style={linkStyle} end>
         Home
       </NavLink>
+      <NavLink to="/dashboard" style={linkStyle}>
+        Dashboard
+      </NavLink>
       <NavLink to="/workouts" style={linkStyle}>
         Workouts
       </NavLink>
       <NavLink to="/workouts/new" style={linkStyle}>
         New Workout
+      </NavLink>
+      <NavLink to="/progress" style={linkStyle}>
+        Progress
+      </NavLink>
+      <NavLink to="/about" style={linkStyle}>
+        About
+      </NavLink>
+      <NavLink to="/login" style={linkStyle}>
+        Login
+      </NavLink>
+      <NavLink to="/register" style={linkStyle}>
+        Register
       </NavLink>
     </nav>
   )
