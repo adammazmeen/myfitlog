@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 export default function Dashboard() {
+  const { logout } = useAuth()
+
   return (
     <div>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -9,7 +12,7 @@ export default function Dashboard() {
           <Link to="/progress" style={{ marginRight: 12 }}>
             Progress
           </Link>
-          <button>Logout</button>
+          <button onClick={logout}>Logout</button>
         </div>
       </header>
 

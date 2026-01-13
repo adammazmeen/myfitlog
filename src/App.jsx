@@ -10,6 +10,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import ProgressPhotos from './pages/ProgressPhotos'
 import About from './pages/About'
+import { RequireAuth, RedirectIfAuth } from './components/AuthGuard'
 
 export default function App() {
   return (
@@ -18,14 +19,14 @@ export default function App() {
       <main style={{ padding: 16 }}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/progress" element={<ProgressPhotos />} />
+          <Route path="/login" element={<RedirectIfAuth><Login /></RedirectIfAuth>} />
+          <Route path="/register" element={<RedirectIfAuth><Register /></RedirectIfAuth>} />
+          <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+          <Route path="/progress" element={<RequireAuth><ProgressPhotos /></RequireAuth>} />
           <Route path="/about" element={<About />} />
-          <Route path="/workouts" element={<Workouts />} />
-          <Route path="/workouts/new" element={<NewWorkout />} />
-          <Route path="/workouts/:id" element={<WorkoutDetail />} />
+          <Route path="/workouts" element={<RequireAuth><Workouts /></RequireAuth>} />
+          <Route path="/workouts/new" element={<RequireAuth><NewWorkout /></RequireAuth>} />
+          <Route path="/workouts/:id" element={<RequireAuth><WorkoutDetail /></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
