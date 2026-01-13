@@ -51,7 +51,10 @@ export default function Dashboard() {
           <ul>
             {workouts.map((w) => (
               <li key={w.id}>
-                {w.title} — {w.workout_date}
+                {w.title} —{" "}
+                {w.workout_date
+                  ? new Date(w.workout_date).toLocaleDateString()
+                  : ""}
               </li>
             ))}
           </ul>
