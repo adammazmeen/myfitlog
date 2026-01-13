@@ -28,3 +28,17 @@ export async function createWorkout({ user_id, title, workout_date }) {
   if (!res.ok) throw new Error("Failed to create workout");
   return res.json();
 }
+
+export async function getWorkout(workoutId) {
+  if (!API_BASE) return null;
+  const res = await fetch(`${API_BASE}/workouts/${workoutId}`);
+  if (!res.ok) throw new Error("Failed to fetch workout");
+  return res.json();
+}
+
+export async function getWorkoutExercises(workoutId) {
+  if (!API_BASE) return [];
+  const res = await fetch(`${API_BASE}/workout-exercises/${workoutId}`);
+  if (!res.ok) throw new Error("Failed to fetch workout exercises");
+  return res.json();
+}
