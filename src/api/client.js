@@ -42,3 +42,46 @@ export async function getWorkoutExercises(workoutId) {
   if (!res.ok) throw new Error("Failed to fetch workout exercises");
   return res.json();
 }
+
+export async function postExercise({
+  name,
+  muscle_group,
+  equipment,
+  difficulty,
+  instructions,
+}) {
+  if (!API_BASE) return null;
+  const res = await fetch(`${API_BASE}/exercises`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name,
+      muscle_group,
+      equipment,
+      difficulty,
+      instructions,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to save exercise");
+  return res.json();
+}
+
+export async function addWorkoutExercise({
+  workout_id,
+  exercise_id,
+  sets,
+  reps,
+  weight,
+}) {
+  if (!API_BASE) return null;
+  const res = await fetch(`${API_BASE}/workout-exercises`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ workout_id, exercise_id, sets, reps, weight }),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Failed to add workout exercise: ${res.status} ${body}`);
+  }
+  return res.json();
+}
