@@ -1,46 +1,70 @@
+import axios from "axios";
+
 export const API_BASE = import.meta.env.VITE_API_BASE || "";
+
+function makeError(prefix, err) {
+  if (err?.response) {
+    const body =
+      typeof err.response.data === "string"
+        ? err.response.data
+        : JSON.stringify(err.response.data);
+    return new Error(`${prefix}: ${err.response.status} ${body}`);
+  }
+  return new Error(`${prefix}: ${err.message || String(err)}`);
+}
 
 export async function postUser({ firebase_uid, email }) {
   if (!API_BASE) return null;
-  const res = await fetch(`${API_BASE}/users`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ firebase_uid, email }),
-  });
-  if (!res.ok) throw new Error("Failed to create user");
-  return res.json();
+  try {
+    const res = await axios.post(`${API_BASE}/users`, { firebase_uid, email });
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to create user", err);
+  }
 }
 
 export async function getWorkoutsForUser(userId) {
   if (!API_BASE) return [];
-  const res = await fetch(`${API_BASE}/workouts/user/${userId}`);
-  if (!res.ok) throw new Error("Failed to fetch workouts");
-  return res.json();
+  try {
+    const res = await axios.get(`${API_BASE}/workouts/user/${userId}`);
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to fetch workouts", err);
+  }
 }
 
 export async function createWorkout({ user_id, title, workout_date }) {
   if (!API_BASE) return null;
-  const res = await fetch(`${API_BASE}/workouts`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id, title, workout_date }),
-  });
-  if (!res.ok) throw new Error("Failed to create workout");
-  return res.json();
+  try {
+    const res = await axios.post(`${API_BASE}/workouts`, {
+      user_id,
+      title,
+      workout_date,
+    });
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to create workout", err);
+  }
 }
 
 export async function getWorkout(workoutId) {
   if (!API_BASE) return null;
-  const res = await fetch(`${API_BASE}/workouts/${workoutId}`);
-  if (!res.ok) throw new Error("Failed to fetch workout");
-  return res.json();
+  try {
+    const res = await axios.get(`${API_BASE}/workouts/${workoutId}`);
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to fetch workout", err);
+  }
 }
 
 export async function getWorkoutExercises(workoutId) {
   if (!API_BASE) return [];
-  const res = await fetch(`${API_BASE}/workout-exercises/${workoutId}`);
-  if (!res.ok) throw new Error("Failed to fetch workout exercises");
-  return res.json();
+  try {
+    const res = await axios.get(`${API_BASE}/workout-exercises/${workoutId}`);
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to fetch workout exercises", err);
+  }
 }
 
 export async function postExercise({
@@ -51,19 +75,18 @@ export async function postExercise({
   instructions,
 }) {
   if (!API_BASE) return null;
-  const res = await fetch(`${API_BASE}/exercises`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  try {
+    const res = await axios.post(`${API_BASE}/exercises`, {
       name,
       muscle_group,
       equipment,
       difficulty,
       instructions,
-    }),
-  });
-  if (!res.ok) throw new Error("Failed to save exercise");
-  return res.json();
+    });
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to save exercise", err);
+  }
 }
 
 export async function addWorkoutExercise({
@@ -74,14 +97,16 @@ export async function addWorkoutExercise({
   weight,
 }) {
   if (!API_BASE) return null;
-  const res = await fetch(`${API_BASE}/workout-exercises`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ workout_id, exercise_id, sets, reps, weight }),
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`Failed to add workout exercise: ${res.status} ${body}`);
+  try {
+    const res = await axios.post(`${API_BASE}/workout-exercises`, {
+      workout_id,
+      exercise_id,
+      sets,
+      reps,
+      weight,
+    });
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to add workout exercise", err);
   }
-  return res.json();
 }
