@@ -137,3 +137,23 @@ export async function updateWorkoutExercise(id, { sets, reps, weight }) {
     throw makeError("Failed to update workout exercise", err);
   }
 }
+
+export async function deleteWorkout(workoutId) {
+  if (!API_BASE) return null;
+  try {
+    const res = await axios.delete(`${API_BASE}/workouts/${workoutId}`);
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to delete workout", err);
+  }
+}
+
+export async function deleteWorkoutExercise(id) {
+  if (!API_BASE) return null;
+  try {
+    const res = await axios.delete(`${API_BASE}/workout-exercises/${id}`);
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to remove workout exercise", err);
+  }
+}

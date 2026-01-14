@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   getWorkout,
@@ -7,15 +7,22 @@ import {
   updateWorkoutExercise,
   postExercise,
   addWorkoutExercise,
+  deleteWorkout,
+  deleteWorkoutExercise,
 } from "../api/client";
 
 export default function WorkoutDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [workout, setWorkout] = useState(null);
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const [removingIds, setRemovingIds] = useState({});
+  const [removeError, setRemoveError] = useState(null);
 
   const [workoutForm, setWorkoutForm] = useState({
     title: "",
@@ -124,6 +131,25 @@ export default function WorkoutDetail() {
     }
   }
 
+  async function handleDeleteWorkout() {
+    if (!workout?.id) return;
+    const confirmed = window.confirm(
+      "Delete this workout? This cannot be undone."
+    );
+    if (!confirmed) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteWorkout(workout.id);
+      navigate("/workouts");
+    } catch (err) {
+      console.error("Failed to delete workout", err);
+      setDeleteError("Failed to delete workout");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   async function handleAddExercise() {
     if (!newExercise.name) return setAddExError("Name required");
     setAddingEx(true);
@@ -155,6 +181,30 @@ export default function WorkoutDetail() {
       setAddExError(err.message || "Failed to add exercise");
     } finally {
       setAddingEx(false);
+    }
+  }
+
+  async function handleRemoveExercise(workoutExerciseId) {
+    if (!workoutExerciseId) return;
+    const confirmed = window.confirm("Remove this exercise from the workout?");
+    if (!confirmed) return;
+    setRemovingIds((prev) => ({ ...prev, [workoutExerciseId]: true }));
+    setRemoveError(null);
+    try {
+      await deleteWorkoutExercise(workoutExerciseId);
+      setExercises((prev) => prev.filter((ex) => ex.id !== workoutExerciseId));
+      setExerciseEdits((prev) =>
+        prev.filter((ex) => ex.id !== workoutExerciseId)
+      );
+    } catch (err) {
+      console.error("Failed to remove workout exercise", err);
+      setRemoveError("Failed to remove exercise");
+    } finally {
+      setRemovingIds((prev) => {
+        const next = { ...prev };
+        delete next[workoutExerciseId];
+        return next;
+      });
     }
   }
 
@@ -243,6 +293,18 @@ export default function WorkoutDetail() {
                   style={{ width: 80 }}
                 />
               </label>
+              <button
+                type="button"
+                onClick={() => handleRemoveExercise(ee.id)}
+                disabled={!!removingIds[ee.id]}
+                style={{
+                  marginLeft: 8,
+                  background: "#b00020",
+                  color: "#fff",
+                }}
+              >
+                {removingIds[ee.id] ? "Removing..." : "Remove"}
+              </button>
             </div>
           ))}
 
@@ -322,7 +384,19 @@ export default function WorkoutDetail() {
             <button onClick={() => setEditing(false)} style={{ marginLeft: 8 }}>
               Cancel
             </button>
+            <button
+              onClick={handleDeleteWorkout}
+              disabled={deleting}
+              style={{
+                marginLeft: 8,
+                background: "#b00020",
+                color: "#fff",
+              }}
+            >
+              {deleting ? "Deleting..." : "Delete Workout"}
+            </button>
             {error && <div style={{ color: "red" }}>{error}</div>}
+            {deleteError && <div style={{ color: "red" }}>{deleteError}</div>}
           </div>
         </div>
       )}
@@ -339,6 +413,9 @@ export default function WorkoutDetail() {
             </li>
           ))}
         </ul>
+      )}
+      {removeError && (
+        <div style={{ color: "red", marginTop: 8 }}>{removeError}</div>
       )}
     </div>
   );
