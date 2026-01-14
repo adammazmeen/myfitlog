@@ -110,3 +110,30 @@ export async function addWorkoutExercise({
     throw makeError("Failed to add workout exercise", err);
   }
 }
+
+export async function updateWorkout(workoutId, { title, workout_date }) {
+  if (!API_BASE) return null;
+  try {
+    const res = await axios.put(`${API_BASE}/workouts/${workoutId}`, {
+      title,
+      workout_date,
+    });
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to update workout", err);
+  }
+}
+
+export async function updateWorkoutExercise(id, { sets, reps, weight }) {
+  if (!API_BASE) return null;
+  try {
+    const res = await axios.put(`${API_BASE}/workout-exercises/${id}`, {
+      sets,
+      reps,
+      weight,
+    });
+    return res.data;
+  } catch (err) {
+    throw makeError("Failed to update workout exercise", err);
+  }
+}
