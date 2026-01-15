@@ -1,6 +1,12 @@
 import axios from "axios";
 
 export const API_BASE = import.meta.env.VITE_API_BASE || "";
+const CUSTOM_EXTERNAL_EXERCISE_URL =
+  import.meta.env.VITE_EXTERNAL_EXERCISE_URL || "";
+const EXTERNAL_EXERCISE_URL =
+  CUSTOM_EXTERNAL_EXERCISE_URL || "https://api.api-ninjas.com/v1/exercises";
+const EXTERNAL_API_KEY = import.meta.env.VITE_API_NINJAS_KEY;
+const NEEDS_API_KEY = !CUSTOM_EXTERNAL_EXERCISE_URL;
 
 function makeError(prefix, err) {
   if (err?.response) {
@@ -155,5 +161,32 @@ export async function deleteWorkoutExercise(id) {
     return res.data;
   } catch (err) {
     throw makeError("Failed to remove workout exercise", err);
+  }
+}
+
+export async function searchExternalExercises(query, params = {}) {
+  const trimmed = query?.trim();
+  if (!trimmed) return [];
+  if (NEEDS_API_KEY && !EXTERNAL_API_KEY) {
+    throw new Error(
+      "Missing VITE_API_NINJAS_KEY. Set it or provide VITE_EXTERNAL_EXERCISE_URL."
+    );
+  }
+
+  try {
+    const res = await axios.get(EXTERNAL_EXERCISE_URL, {
+      params: {
+        name: trimmed,
+        ...params,
+      },
+      headers: EXTERNAL_API_KEY
+        ? {
+            "X-Api-Key": EXTERNAL_API_KEY,
+          }
+        : undefined,
+    });
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    throw makeError("Failed to fetch external exercises", err);
   }
 }

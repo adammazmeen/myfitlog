@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { createWorkout, postExercise, addWorkoutExercise } from "../api/client";
+import ExerciseSearch from "../components/ExerciseSearch";
 
 export default function NewWorkout() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function NewWorkout() {
   const [exReps, setExReps] = useState(8);
   const [exWeight, setExWeight] = useState("");
   const [exercises, setExercises] = useState([]);
+  const [selectedExternal, setSelectedExternal] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -36,7 +38,13 @@ export default function NewWorkout() {
         for (const ex of exercises) {
           try {
             // ensure exercise exists in exercises table
-            const savedEx = await postExercise({ name: ex.name });
+            const savedEx = await postExercise({
+              name: ex.name,
+              muscle_group: ex.meta?.muscle_group,
+              equipment: ex.meta?.equipment,
+              difficulty: ex.meta?.difficulty,
+              instructions: ex.meta?.instructions,
+            });
             const exId = savedEx && savedEx.id ? savedEx.id : ex.id;
             if (!exId) {
               console.warn("postExercise returned no id", savedEx);
@@ -117,7 +125,16 @@ export default function NewWorkout() {
         <h3>Add Exercise</h3>
         <label>
           Name:{" "}
-          <input value={exName} onChange={(e) => setExName(e.target.value)} />
+          <input
+            value={exName}
+            onChange={(e) => {
+              const value = e.target.value;
+              setExName(value);
+              if (selectedExternal && selectedExternal.name !== value) {
+                setSelectedExternal(null);
+              }
+            }}
+          />
         </label>
         <label style={{ marginLeft: 8 }}>
           Sets:{" "}
@@ -150,18 +167,44 @@ export default function NewWorkout() {
             if (!exName) return;
             setExercises((s) => [
               ...s,
-              { name: exName, sets: exSets, reps: exReps, weight: exWeight },
+              {
+                name: exName,
+                sets: exSets,
+                reps: exReps,
+                weight: exWeight,
+                meta:
+                  selectedExternal && selectedExternal.name === exName
+                    ? selectedExternal
+                    : null,
+              },
             ]);
             setExName("");
             setExSets(3);
             setExReps(8);
             setExWeight("");
+            setSelectedExternal(null);
           }}
           style={{ marginLeft: 8 }}
           type="button"
         >
           Add Exercise
         </button>
+
+        <ExerciseSearch
+          title="Search exercises (API Ninjas)"
+          helperText="Pick a result to autofill the name."
+          onSelect={(result) => {
+            if (!result) return;
+            setExName(result.name || "");
+            setSelectedExternal({
+              name: result.name || "",
+              muscle_group: result.muscle,
+              equipment: result.equipment,
+              difficulty: result.difficulty,
+              instructions: result.instructions,
+            });
+          }}
+        />
 
         <div style={{ marginTop: 12 }}>
           <h4>Exercises to add</h4>
@@ -173,6 +216,11 @@ export default function NewWorkout() {
                 <li key={i}>
                   {ex.name} — {ex.sets}×{ex.reps}{" "}
                   {ex.weight ? `@ ${ex.weight}` : ""}
+                  {ex.meta?.muscle_group && (
+                    <span style={{ marginLeft: 4, fontSize: 12 }}>
+                      ({ex.meta.muscle_group})
+                    </span>
+                  )}
                   <button
                     onClick={() =>
                       setExercises((s) => s.filter((_, idx) => idx !== i))

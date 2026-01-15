@@ -11,6 +11,15 @@ Currently, two official plugins are available:
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+## Environment variables
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Create a `.env` file at the project root with the backend base URL and the API Ninjas key used for exercise search:
+
+```
+VITE_API_BASE=https://your-backend.example.com
+VITE_API_NINJAS_KEY=your_api_ninjas_key
+# Optional override if you are proxying/constraining the external API
+VITE_EXTERNAL_EXERCISE_URL=https://api.api-ninjas.com/v1/exercises
+```
+
+`VITE_API_NINJAS_KEY` is required for the new exercise search UI. In production you should proxy external requests through your backend so the key is not exposed to browsers.

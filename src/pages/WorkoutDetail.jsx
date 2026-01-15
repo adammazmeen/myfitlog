@@ -10,6 +10,7 @@ import {
   deleteWorkout,
   deleteWorkoutExercise,
 } from "../api/client";
+import ExerciseSearch from "../components/ExerciseSearch";
 
 export default function WorkoutDetail() {
   const { id } = useParams();
@@ -34,6 +35,7 @@ export default function WorkoutDetail() {
     sets: 3,
     reps: 8,
     weight: "",
+    meta: null,
   });
   const [addingEx, setAddingEx] = useState(false);
   const [addExError, setAddExError] = useState(null);
@@ -155,7 +157,13 @@ export default function WorkoutDetail() {
     setAddingEx(true);
     setAddExError(null);
     try {
-      const savedEx = await postExercise({ name: newExercise.name });
+      const savedEx = await postExercise({
+        name: newExercise.name,
+        muscle_group: newExercise.meta?.muscle_group,
+        equipment: newExercise.meta?.equipment,
+        difficulty: newExercise.meta?.difficulty,
+        instructions: newExercise.meta?.instructions,
+      });
       const exId = savedEx && savedEx.id ? savedEx.id : null;
       if (!exId) throw new Error("No exercise id returned");
       await addWorkoutExercise({
@@ -175,7 +183,7 @@ export default function WorkoutDetail() {
           weight: ex.weight,
         }))
       );
-      setNewExercise({ name: "", sets: 3, reps: 8, weight: "" });
+      setNewExercise({ name: "", sets: 3, reps: 8, weight: "", meta: null });
     } catch (err) {
       console.error("Add exercise failed", err);
       setAddExError(err.message || "Failed to add exercise");
@@ -320,9 +328,14 @@ export default function WorkoutDetail() {
               Name:{" "}
               <input
                 value={newExercise.name}
-                onChange={(e) =>
-                  setNewExercise((p) => ({ ...p, name: e.target.value }))
-                }
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setNewExercise((p) => ({
+                    ...p,
+                    name: value,
+                    meta: p.meta?.name && p.meta.name === value ? p.meta : null,
+                  }));
+                }}
               />
             </label>
             <label style={{ marginLeft: 8 }}>
@@ -363,6 +376,24 @@ export default function WorkoutDetail() {
                 style={{ width: 80 }}
               />
             </label>
+            <ExerciseSearch
+              title="Search exercises (API Ninjas)"
+              helperText="Pick a result to autofill the name."
+              onSelect={(result) => {
+                if (!result) return;
+                setNewExercise((p) => ({
+                  ...p,
+                  name: result.name || "",
+                  meta: {
+                    name: result.name || "",
+                    muscle_group: result.muscle,
+                    equipment: result.equipment,
+                    difficulty: result.difficulty,
+                    instructions: result.instructions,
+                  },
+                }));
+              }}
+            />
             <div style={{ marginTop: 8 }}>
               <button
                 type="button"
