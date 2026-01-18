@@ -255,66 +255,91 @@ export default function WorkoutDetail() {
           </label>
 
           <h4 style={{ marginTop: 12 }}>Exercises</h4>
-          {exerciseEdits.map((ee, idx) => (
-            <div key={ee.id} style={{ marginBottom: 8 }}>
-              <strong>
-                {exercises.find((x) => x.id === ee.id)?.name || "Exercise"}
-              </strong>
-              <label style={{ marginLeft: 8 }}>
-                Sets:{" "}
-                <input
-                  type="number"
-                  value={ee.sets}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setExerciseEdits((s) =>
-                      s.map((s2, i) => (i === idx ? { ...s2, sets: v } : s2))
-                    );
+          {exerciseEdits.map((ee, idx) => {
+            const meta = exercises.find((x) => x.id === ee.id);
+            return (
+              <div key={ee.id} style={{ marginBottom: 8 }}>
+                <div>
+                  <strong>{meta?.name || "Exercise"}</strong>
+                  {meta?.muscle_group && (
+                    <span style={{ marginLeft: 6, fontSize: 12 }}>
+                      ({meta.muscle_group})
+                    </span>
+                  )}
+                  {meta?.equipment && (
+                    <div style={{ fontSize: 12, color: "#555" }}>
+                      Equipment: {meta.equipment}
+                    </div>
+                  )}
+                  {meta?.difficulty && (
+                    <div style={{ fontSize: 12, color: "#555" }}>
+                      Difficulty: {meta.difficulty}
+                    </div>
+                  )}
+                  {meta?.instructions && (
+                    <div style={{ fontSize: 12, color: "#555" }}>
+                      Instructions: {meta.instructions}
+                    </div>
+                  )}
+                </div>
+                <label style={{ marginLeft: 8 }}>
+                  Sets:{" "}
+                  <input
+                    type="number"
+                    value={ee.sets}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setExerciseEdits((s) =>
+                        s.map((s2, i) => (i === idx ? { ...s2, sets: v } : s2))
+                      );
+                    }}
+                    style={{ width: 60 }}
+                  />
+                </label>
+                <label style={{ marginLeft: 8 }}>
+                  Reps:{" "}
+                  <input
+                    type="number"
+                    value={ee.reps}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setExerciseEdits((s) =>
+                        s.map((s2, i) => (i === idx ? { ...s2, reps: v } : s2))
+                      );
+                    }}
+                    style={{ width: 60 }}
+                  />
+                </label>
+                <label style={{ marginLeft: 8 }}>
+                  Weight:{" "}
+                  <input
+                    value={ee.weight ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setExerciseEdits((s) =>
+                        s.map((s2, i) =>
+                          i === idx ? { ...s2, weight: v } : s2
+                        )
+                      );
+                    }}
+                    style={{ width: 80 }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveExercise(ee.id)}
+                  disabled={!!removingIds[ee.id]}
+                  style={{
+                    marginLeft: 8,
+                    background: "#b00020",
+                    color: "#fff",
                   }}
-                  style={{ width: 60 }}
-                />
-              </label>
-              <label style={{ marginLeft: 8 }}>
-                Reps:{" "}
-                <input
-                  type="number"
-                  value={ee.reps}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setExerciseEdits((s) =>
-                      s.map((s2, i) => (i === idx ? { ...s2, reps: v } : s2))
-                    );
-                  }}
-                  style={{ width: 60 }}
-                />
-              </label>
-              <label style={{ marginLeft: 8 }}>
-                Weight:{" "}
-                <input
-                  value={ee.weight ?? ""}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setExerciseEdits((s) =>
-                      s.map((s2, i) => (i === idx ? { ...s2, weight: v } : s2))
-                    );
-                  }}
-                  style={{ width: 80 }}
-                />
-              </label>
-              <button
-                type="button"
-                onClick={() => handleRemoveExercise(ee.id)}
-                disabled={!!removingIds[ee.id]}
-                style={{
-                  marginLeft: 8,
-                  background: "#b00020",
-                  color: "#fff",
-                }}
-              >
-                {removingIds[ee.id] ? "Removing..." : "Remove"}
-              </button>
-            </div>
-          ))}
+                >
+                  {removingIds[ee.id] ? "Removing..." : "Remove"}
+                </button>
+              </div>
+            );
+          })}
 
           <div
             style={{
@@ -379,18 +404,12 @@ export default function WorkoutDetail() {
             <ExerciseSearch
               title="Search exercises (API Ninjas)"
               helperText="Pick a result to autofill the name."
-              onSelect={(result) => {
-                if (!result) return;
+              onSelect={(meta) => {
+                if (!meta) return;
                 setNewExercise((p) => ({
                   ...p,
-                  name: result.name || "",
-                  meta: {
-                    name: result.name || "",
-                    muscle_group: result.muscle,
-                    equipment: result.equipment,
-                    difficulty: result.difficulty,
-                    instructions: result.instructions,
-                  },
+                  name: meta.name || "",
+                  meta,
                 }));
               }}
             />
@@ -441,6 +460,26 @@ export default function WorkoutDetail() {
             <li key={ex.id}>
               {ex.name} — {ex.sets} × {ex.reps}{" "}
               {ex.weight ? `@ ${ex.weight}` : ""}
+              {ex.muscle_group && (
+                <span style={{ marginLeft: 4, fontSize: 12 }}>
+                  ({ex.muscle_group})
+                </span>
+              )}
+              {ex.equipment && (
+                <div style={{ fontSize: 12, color: "#555" }}>
+                  Equipment: {ex.equipment}
+                </div>
+              )}
+              {ex.difficulty && (
+                <div style={{ fontSize: 12, color: "#555" }}>
+                  Difficulty: {ex.difficulty}
+                </div>
+              )}
+              {ex.instructions && (
+                <div style={{ fontSize: 12, color: "#555" }}>
+                  Instructions: {ex.instructions}
+                </div>
+              )}
             </li>
           ))}
         </ul>

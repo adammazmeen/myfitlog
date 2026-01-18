@@ -193,16 +193,10 @@ export default function NewWorkout() {
         <ExerciseSearch
           title="Search exercises (API Ninjas)"
           helperText="Pick a result to autofill the name."
-          onSelect={(result) => {
-            if (!result) return;
-            setExName(result.name || "");
-            setSelectedExternal({
-              name: result.name || "",
-              muscle_group: result.muscle,
-              equipment: result.equipment,
-              difficulty: result.difficulty,
-              instructions: result.instructions,
-            });
+          onSelect={(meta) => {
+            if (!meta) return;
+            setExName(meta.name || "");
+            setSelectedExternal(meta);
           }}
         />
 
@@ -220,6 +214,11 @@ export default function NewWorkout() {
                     <span style={{ marginLeft: 4, fontSize: 12 }}>
                       ({ex.meta.muscle_group})
                     </span>
+                  )}
+                  {ex.meta?.equipment && (
+                    <div style={{ fontSize: 12, color: "#555" }}>
+                      Equipment: {ex.meta.equipment}
+                    </div>
                   )}
                   <button
                     onClick={() =>

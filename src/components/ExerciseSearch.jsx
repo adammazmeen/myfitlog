@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { searchExternalExercises } from "../api/client";
+import {
+  normalizeExternalExercise,
+  toEquipmentString,
+} from "../utils/exercise";
 
 export default function ExerciseSearch({
   onSelect,
@@ -49,7 +53,9 @@ export default function ExerciseSearch({
   }, [term, limit]);
 
   function handleSelect(result) {
-    if (onSelect) onSelect(result);
+    if (!onSelect) return;
+    const normalized = normalizeExternalExercise(result);
+    onSelect(normalized);
   }
 
   return (
@@ -76,28 +82,37 @@ export default function ExerciseSearch({
       {error && <div style={{ color: "red", marginTop: 6 }}>{error}</div>}
       {results.length > 0 && (
         <ul style={{ marginTop: 8 }}>
-          {results.map((result, idx) => (
-            <li key={`${result.name}-${idx}`} style={{ marginBottom: 8 }}>
-              <div>
-                <strong>{result.name}</strong>
-                {result.muscle ? ` · ${result.muscle}` : ""}
-                {result.type ? ` · ${result.type}` : ""}
-                {result.difficulty ? ` · ${result.difficulty}` : ""}
-              </div>
-              {result.equipment && (
-                <div style={{ fontSize: 12 }}>
-                  Equipment: {result.equipment}
+          {results.map((result, idx) => {
+            const equipmentLabel = toEquipmentString(
+              result.equipment ??
+                result.equipments ??
+                result.equipment_list ??
+                result.equipment_required ??
+                result.equipmentList
+            );
+            return (
+              <li key={`${result.name}-${idx}`} style={{ marginBottom: 8 }}>
+                <div>
+                  <strong>{result.name}</strong>
+                  {result.muscle ? ` · ${result.muscle}` : ""}
+                  {result.type ? ` · ${result.type}` : ""}
+                  {result.difficulty ? ` · ${result.difficulty}` : ""}
                 </div>
-              )}
-              <button
-                type="button"
-                onClick={() => handleSelect(result)}
-                style={{ marginTop: 4 }}
-              >
-                Use Exercise
-              </button>
-            </li>
-          ))}
+                {equipmentLabel && (
+                  <div style={{ fontSize: 12 }}>
+                    Equipment: {equipmentLabel}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleSelect(result)}
+                  style={{ marginTop: 4 }}
+                >
+                  Use Exercise
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
