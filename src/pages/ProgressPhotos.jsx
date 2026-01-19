@@ -18,6 +18,9 @@ export default function ProgressPhotos() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deletingPath, setDeletingPath] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [note, setNote] = useState("");
   const fileInputRef = useRef(null);
 
   const folderPath = user?.uid ? `progress-photos/${user.uid}` : null;
@@ -46,6 +49,7 @@ export default function ProgressPhotos() {
             path: item.fullPath,
             name: metadata.customMetadata?.originalName || item.name,
             uploadedAt,
+            note: metadata.customMetadata?.note || "",
           };
         })
       );
@@ -87,24 +91,49 @@ export default function ProgressPhotos() {
 
   function handleFileChange(event) {
     const file = event.target.files?.[0];
-    if (!file || !folderPath) return;
+    if (!file) return;
+    setError(null);
+    setSelectedFile(file);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(URL.createObjectURL(file));
+  }
+
+  function clearSelectedFile() {
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleUpload() {
+    if (!selectedFile) {
+      setError("Please choose a photo first.");
+      return;
+    }
+    if (!folderPath) return;
 
     setError(null);
     setUploading(true);
     setUploadProgress(0);
 
-    const safeName = `${Date.now()}-${file.name
+    const safeName = `${Date.now()}-${selectedFile.name
       .toLowerCase()
       .replace(/[^a-z0-9.]+/g, "-")}`;
     const fileRef = ref(storage, `${folderPath}/${safeName}`);
+    const trimmedNote = note.trim();
     const metadata = {
       customMetadata: {
         uploadedAt: new Date().toISOString(),
-        originalName: file.name,
+        originalName: selectedFile.name,
+        note: trimmedNote,
       },
     };
 
-    const task = uploadBytesResumable(fileRef, file, metadata);
+    const task = uploadBytesResumable(fileRef, selectedFile, metadata);
     task.on(
       "state_changed",
       (snapshot) => {
@@ -118,7 +147,6 @@ export default function ProgressPhotos() {
         setError("Upload failed. Please try again.");
         setUploading(false);
         setUploadProgress(0);
-        if (fileInputRef.current) fileInputRef.current.value = "";
       },
       async () => {
         try {
@@ -131,18 +159,20 @@ export default function ProgressPhotos() {
           const newPhoto = {
             url,
             path: task.snapshot.ref.fullPath,
-            name: meta.customMetadata?.originalName || file.name,
+            name: meta.customMetadata?.originalName || selectedFile.name,
             uploadedAt,
+            note: meta.customMetadata?.note || trimmedNote,
           };
           setPhotos((prev) => [newPhoto, ...prev]);
         } catch (err) {
           console.error("post-upload load failed", err);
-          // reload list to stay consistent if metadata fetch fails
           loadPhotos();
         } finally {
           setUploading(false);
           setUploadProgress(0);
-          if (fileInputRef.current) fileInputRef.current.value = "";
+          setNote("");
+          clearSelectedFile();
+          setPreviewUrl(null);
         }
       }
     );
@@ -185,10 +215,82 @@ export default function ProgressPhotos() {
         onChange={handleFileChange}
       />
 
-      <button onClick={handleFileClick} disabled={uploading}>
-        {uploading ? "Uploading..." : "Select Photo"}
-      </button>
-      {uploading && <span style={{ marginLeft: 8 }}>{uploadProgress}%</span>}
+      <div style={{ margin: "16px 0", maxWidth: 480 }}>
+        <label style={{ display: "block", textAlign: "left", marginBottom: 4 }}>
+          Optional note
+        </label>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="e.g. Week 4 cut-in, morning lighting"
+          rows={3}
+          style={{
+            width: "100%",
+            resize: "vertical",
+            padding: 8,
+            borderRadius: 6,
+            border: "1px solid #ddd",
+          }}
+          disabled={uploading}
+        />
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        <button onClick={handleFileClick} disabled={uploading}>
+          Choose Photo
+        </button>
+        <button onClick={handleUpload} disabled={!selectedFile || uploading}>
+          {uploading ? "Uploading..." : "Upload Photo"}
+        </button>
+        {uploading && <span>{uploadProgress}%</span>}
+      </div>
+
+      {selectedFile && (
+        <div
+          style={{
+            marginTop: 12,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          <div style={{ fontSize: 14 }}>
+            Selected: <strong>{selectedFile.name}</strong>
+            <button
+              type="button"
+              onClick={clearSelectedFile}
+              disabled={uploading}
+              style={{ marginLeft: 8 }}
+            >
+              Clear
+            </button>
+          </div>
+          {previewUrl && (
+            <div
+              style={{
+                width: 180,
+                height: 180,
+                borderRadius: 8,
+                overflow: "hidden",
+                border: "1px solid #eee",
+              }}
+            >
+              <img
+                src={previewUrl}
+                alt="Preview"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
 
@@ -242,6 +344,9 @@ export default function ProgressPhotos() {
                 <div style={{ fontSize: 12, color: "#555" }}>
                   {formatDate(photo.uploadedAt)}
                 </div>
+                {photo.note && (
+                  <div style={{ fontSize: 12, marginTop: 4 }}>{photo.note}</div>
+                )}
                 <button
                   type="button"
                   onClick={() => handleDelete(photo.path)}
