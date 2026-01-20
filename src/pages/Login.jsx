@@ -1,44 +1,61 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState(null)
-  const navigate = useNavigate()
-  const { login } = useAuth()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
     try {
-      await login(email, password)
-      navigate('/dashboard')
+      await login(email, password);
+      navigate("/dashboard");
     } catch (err) {
-      setError(err.message || 'Login failed')
+      setError(err.message || "Login failed");
     }
   }
 
   return (
-    <div style={{ maxWidth: 480 }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>
-            Email
-            <input name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </label>
+    <section className="glass-panel form-card stack">
+      <div className="stack">
+        <h1 className="page-heading">Login</h1>
+        <p className="page-subtitle">Sign back in to keep logging workouts.</p>
+      </div>
+      <form onSubmit={handleSubmit} className="stack">
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            className="input"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
-        <div>
-          <label>
-            Password
-            <input name="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </label>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            className="input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
         </div>
-        {error && <div style={{ color: 'red' }}>{error}</div>}
-        <button type="submit">Login</button>
+        {error && <div className="text-error">{error}</div>}
+        <button type="submit" className="btn btn-primary btn-block">
+          Login
+        </button>
       </form>
-    </div>
-  )
+    </section>
+  );
 }

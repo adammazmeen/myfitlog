@@ -93,102 +93,122 @@ export default function NewWorkout() {
   }
 
   return (
-    <div>
-      <h2>Create Workout</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Title:{" "}
-          <input
-            name="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </label>
-        <br />
-        <label>
-          Date:{" "}
-          <input
-            type="date"
-            name="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </label>
-        <br />
-        <button type="submit" disabled={loading}>
-          {loading ? "Creating..." : "Create"}
+    <section className="glass-panel stack--lg">
+      <div className="stack">
+        <h1 className="page-heading">Create Workout</h1>
+        <p className="page-subtitle">
+          Name it, set the date, then stack your exercises.
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="stack card">
+        <div className="form-grid">
+          <div className="form-group">
+            <label htmlFor="workout-title">Title</label>
+            <input
+              id="workout-title"
+              name="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="input"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="workout-date">Date</label>
+            <input
+              id="workout-date"
+              type="date"
+              name="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="input"
+              required
+            />
+          </div>
+        </div>
+        {error && <div className="text-error">{error}</div>}
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? "Creating..." : "Save Workout"}
         </button>
-        {error && <div style={{ color: "red" }}>{error}</div>}
       </form>
 
-      <section style={{ marginTop: 16 }}>
-        <h3>Add Exercise</h3>
-        <label>
-          Name:{" "}
-          <input
-            value={exName}
-            onChange={(e) => {
-              const value = e.target.value;
-              setExName(value);
-              if (selectedExternal && selectedExternal.name !== value) {
-                setSelectedExternal(null);
-              }
+      <div className="card stack">
+        <h3 className="section-heading">Add Exercise</h3>
+        <div className="form-grid">
+          <div className="form-group">
+            <label htmlFor="exercise-name">Name</label>
+            <input
+              id="exercise-name"
+              value={exName}
+              onChange={(e) => {
+                const value = e.target.value;
+                setExName(value);
+                if (selectedExternal && selectedExternal.name !== value) {
+                  setSelectedExternal(null);
+                }
+              }}
+              className="input"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="exercise-sets">Sets</label>
+            <input
+              id="exercise-sets"
+              type="number"
+              value={exSets}
+              onChange={(e) => setExSets(Number(e.target.value))}
+              className="input"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="exercise-reps">Reps</label>
+            <input
+              id="exercise-reps"
+              type="number"
+              value={exReps}
+              onChange={(e) => setExReps(Number(e.target.value))}
+              className="input"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="exercise-weight">Weight</label>
+            <input
+              id="exercise-weight"
+              value={exWeight}
+              onChange={(e) => setExWeight(e.target.value)}
+              className="input"
+            />
+          </div>
+        </div>
+        <div className="action-bar">
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() => {
+              if (!exName) return;
+              setExercises((s) => [
+                ...s,
+                {
+                  name: exName,
+                  sets: exSets,
+                  reps: exReps,
+                  weight: exWeight,
+                  meta:
+                    selectedExternal && selectedExternal.name === exName
+                      ? selectedExternal
+                      : null,
+                },
+              ]);
+              setExName("");
+              setExSets(3);
+              setExReps(8);
+              setExWeight("");
+              setSelectedExternal(null);
             }}
-          />
-        </label>
-        <label style={{ marginLeft: 8 }}>
-          Sets:{" "}
-          <input
-            type="number"
-            value={exSets}
-            onChange={(e) => setExSets(Number(e.target.value))}
-            style={{ width: 60 }}
-          />
-        </label>
-        <label style={{ marginLeft: 8 }}>
-          Reps:{" "}
-          <input
-            type="number"
-            value={exReps}
-            onChange={(e) => setExReps(Number(e.target.value))}
-            style={{ width: 60 }}
-          />
-        </label>
-        <label style={{ marginLeft: 8 }}>
-          Weight:{" "}
-          <input
-            value={exWeight}
-            onChange={(e) => setExWeight(e.target.value)}
-            style={{ width: 80 }}
-          />
-        </label>
-        <button
-          onClick={() => {
-            if (!exName) return;
-            setExercises((s) => [
-              ...s,
-              {
-                name: exName,
-                sets: exSets,
-                reps: exReps,
-                weight: exWeight,
-                meta:
-                  selectedExternal && selectedExternal.name === exName
-                    ? selectedExternal
-                    : null,
-              },
-            ]);
-            setExName("");
-            setExSets(3);
-            setExReps(8);
-            setExWeight("");
-            setSelectedExternal(null);
-          }}
-          style={{ marginLeft: 8 }}
-          type="button"
-        >
-          Add Exercise
-        </button>
+          >
+            Add Exercise
+          </button>
+        </div>
 
         <ExerciseSearch
           title="Search exercises (API Ninjas)"
@@ -200,40 +220,46 @@ export default function NewWorkout() {
           }}
         />
 
-        <div style={{ marginTop: 12 }}>
-          <h4>Exercises to add</h4>
+        <div>
+          <h4 className="section-heading">Exercises to add</h4>
           {exercises.length === 0 ? (
-            <div>No exercises added yet.</div>
+            <div className="text-muted">No exercises added yet.</div>
           ) : (
-            <ul>
+            <div className="stack stack--md">
               {exercises.map((ex, i) => (
-                <li key={i}>
-                  {ex.name} — {ex.sets}×{ex.reps}{" "}
-                  {ex.weight ? `@ ${ex.weight}` : ""}
-                  {ex.meta?.muscle_group && (
-                    <span style={{ marginLeft: 4, fontSize: 12 }}>
-                      ({ex.meta.muscle_group})
-                    </span>
-                  )}
+                <article key={i} className="exercise-result">
+                  <div>
+                    <strong>
+                      {ex.name} — {ex.sets}×{ex.reps}{" "}
+                      {ex.weight ? `@ ${ex.weight}` : ""}
+                    </strong>
+                    {ex.meta?.muscle_group && (
+                      <span className="text-muted">
+                        {" "}
+                        ({ex.meta.muscle_group})
+                      </span>
+                    )}
+                  </div>
                   {ex.meta?.equipment && (
-                    <div style={{ fontSize: 12, color: "#555" }}>
+                    <div className="text-muted">
                       Equipment: {ex.meta.equipment}
                     </div>
                   )}
                   <button
+                    type="button"
+                    className="btn btn-outline"
                     onClick={() =>
                       setExercises((s) => s.filter((_, idx) => idx !== i))
                     }
-                    style={{ marginLeft: 8 }}
                   >
                     Remove
                   </button>
-                </li>
+                </article>
               ))}
-            </ul>
+            </div>
           )}
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

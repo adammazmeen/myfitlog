@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getWorkoutsForUser } from "../api/client";
 
 export default function Dashboard() {
-  const { apiUser, logout } = useAuth();
+  const { apiUser } = useAuth();
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -18,48 +18,48 @@ export default function Dashboard() {
   }, [apiUser]);
 
   return (
-    <div>
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h2>Dashboard</h2>
-        <div>
-          <Link to="/progress" style={{ marginRight: 12 }}>
-            Progress
+    <section className="glass-panel stack--lg">
+      <div className="stack">
+        <div className="pill">Signed in as {apiUser?.email || ""}</div>
+        <h1 className="page-heading">Dashboard</h1>
+        <p className="page-subtitle">
+          Quick snapshot of your workouts and progress photos.
+        </p>
+        <div className="action-bar">
+          <Link to="/workouts/new" className="btn btn-primary">
+            Add Workout
           </Link>
-          <button onClick={logout}>Logout</button>
+          <Link to="/progress" className="btn btn-ghost">
+            View Progress Photos
+          </Link>
         </div>
-      </header>
+      </div>
 
-      <section style={{ marginTop: 16 }}>
-        <Link to="/workouts/new">
-          <button style={{ padding: "8px 12px" }}>Add Workout</button>
-        </Link>
-      </section>
-
-      <section style={{ marginTop: 24 }}>
-        <h3>Recent Workouts</h3>
+      <div className="card">
+        <div className="section-heading">Recent Workouts</div>
         {loading ? (
-          <div>Loading workouts...</div>
+          <div className="text-muted" style={{ marginTop: 12 }}>
+            Loading workouts...
+          </div>
         ) : workouts.length === 0 ? (
-          <div>No workouts yet. Start your first one.</div>
+          <div className="text-muted" style={{ marginTop: 12 }}>
+            No workouts yet. Start your first one.
+          </div>
         ) : (
-          <ul>
+          <ul className="data-list">
             {workouts.map((w) => (
-              <li key={w.id}>
-                {w.title} —{" "}
-                {w.workout_date
-                  ? new Date(w.workout_date).toLocaleDateString()
-                  : ""}
+              <li key={w.id} className="data-row">
+                <span>{w.title}</span>
+                <span className="text-muted">
+                  {w.workout_date
+                    ? new Date(w.workout_date).toLocaleDateString()
+                    : ""}
+                </span>
               </li>
             ))}
           </ul>
         )}
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

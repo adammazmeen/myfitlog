@@ -59,29 +59,25 @@ export default function ExerciseSearch({
   }
 
   return (
-    <div style={{ marginTop: 12 }}>
-      <div style={{ marginBottom: 6 }}>
+    <div className="exercise-search">
+      <div className="exercise-search__header">
         <strong>{title}</strong>
-        <div style={{ marginTop: 4 }}>
-          <input
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
-            placeholder="e.g. bench press"
-            style={{ minWidth: 220 }}
-          />
-        </div>
+        {helperText && (
+          <span className="exercise-search__helper">{helperText}</span>
+        )}
       </div>
-      {helperText && (
-        <div style={{ fontSize: 12, color: "#666" }}>{helperText}</div>
-      )}
+      <input
+        value={term}
+        onChange={(e) => setTerm(e.target.value)}
+        placeholder="e.g. bench press"
+        className="input"
+      />
       {loading && term.trim() && (
-        <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
-          Searching...
-        </div>
+        <div className="text-muted status-line">Searching...</div>
       )}
-      {error && <div style={{ color: "red", marginTop: 6 }}>{error}</div>}
+      {error && <div className="text-error status-line">{error}</div>}
       {results.length > 0 && (
-        <ul style={{ marginTop: 8 }}>
+        <ul className="exercise-results">
           {results.map((result, idx) => {
             const equipmentLabel = toEquipmentString(
               result.equipment ??
@@ -91,7 +87,7 @@ export default function ExerciseSearch({
                 result.equipmentList
             );
             return (
-              <li key={`${result.name}-${idx}`} style={{ marginBottom: 8 }}>
+              <li key={`${result.name}-${idx}`} className="exercise-result">
                 <div>
                   <strong>{result.name}</strong>
                   {result.muscle ? ` · ${result.muscle}` : ""}
@@ -99,14 +95,12 @@ export default function ExerciseSearch({
                   {result.difficulty ? ` · ${result.difficulty}` : ""}
                 </div>
                 {equipmentLabel && (
-                  <div style={{ fontSize: 12 }}>
-                    Equipment: {equipmentLabel}
-                  </div>
+                  <div className="text-muted">Equipment: {equipmentLabel}</div>
                 )}
                 <button
                   type="button"
                   onClick={() => handleSelect(result)}
-                  style={{ marginTop: 4 }}
+                  className="btn btn-outline"
                 >
                   Use Exercise
                 </button>

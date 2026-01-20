@@ -1,66 +1,71 @@
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function NavBar() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const linkStyle = ({ isActive }) => ({
-    marginRight: 12,
-    textDecoration: 'none',
-    color: isActive ? '#1e88e5' : '#222',
-  })
+  const navLinkClass = ({ isActive }) =>
+    isActive ? "nav-link is-active" : "nav-link";
 
   async function handleLogout() {
     try {
-      await logout()
-      navigate('/')
+      await logout();
+      navigate("/");
     } catch (err) {
-      console.warn('logout failed', err)
+      console.warn("logout failed", err);
     }
   }
 
   return (
-    <nav style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
-      <NavLink to="/" style={linkStyle} end>
-        Home
+    <header className="nav-shell">
+      <NavLink to="/" className="nav-brand" end>
+        MyFitLog
       </NavLink>
-      {user && (
-        <>
-          <NavLink to="/dashboard" style={linkStyle}>
-            Dashboard
-          </NavLink>
-          <NavLink to="/workouts" style={linkStyle}>
-            Workouts
-          </NavLink>
-          <NavLink to="/workouts/new" style={linkStyle}>
-            New Workout
-          </NavLink>
-          <NavLink to="/progress" style={linkStyle}>
-            Progress
-          </NavLink>
-        </>
-      )}
-      <NavLink to="/about" style={linkStyle}>
-        About
-      </NavLink>
-
-      <span style={{ float: 'right' }}>
+      <div className="nav-links">
+        <NavLink to="/" className={navLinkClass} end>
+          Home
+        </NavLink>
+        {user && (
+          <>
+            <NavLink to="/dashboard" className={navLinkClass}>
+              Dashboard
+            </NavLink>
+            <NavLink to="/workouts" className={navLinkClass}>
+              Workouts
+            </NavLink>
+            <NavLink to="/workouts/new" className={navLinkClass}>
+              New Workout
+            </NavLink>
+            <NavLink to="/progress" className={navLinkClass}>
+              Progress
+            </NavLink>
+          </>
+        )}
+        <NavLink to="/about" className={navLinkClass}>
+          About
+        </NavLink>
+      </div>
+      <div className="nav-links">
         {user ? (
-          <button onClick={handleLogout} style={{ marginLeft: 12 }}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={handleLogout}
+          >
             Logout
           </button>
         ) : (
           <>
-            <NavLink to="/login" style={linkStyle}>
+            <NavLink to="/login" className={navLinkClass}>
               Login
             </NavLink>
-            <NavLink to="/register" style={linkStyle}>
-              Register
+            <NavLink to="/register" className={navLinkClass}>
+              Sign Up
             </NavLink>
           </>
         )}
-      </span>
-    </nav>
-  )
+      </div>
+    </header>
+  );
 }

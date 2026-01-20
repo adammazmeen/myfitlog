@@ -40,6 +40,9 @@ export default function WorkoutDetail() {
   const [addingEx, setAddingEx] = useState(false);
   const [addExError, setAddExError] = useState(null);
 
+  const initialLoad = loading && !workout;
+  const saving = loading && !!workout;
+
   useEffect(() => {
     let mounted = true;
     async function load() {
@@ -65,7 +68,6 @@ export default function WorkoutDetail() {
     };
   }, [id]);
 
-  // sync inputs when workout/exercises load (but don't overwrite while editing)
   useEffect(() => {
     if (!editing && workout) {
       setWorkoutForm({
@@ -83,11 +85,8 @@ export default function WorkoutDetail() {
     }
   }, [workout, exercises, editing]);
 
-  if (loading) return <div>Loading workout...</div>;
-  if (error) return <div style={{ color: "red" }}>{error}</div>;
-  if (!workout) return <div>Workout not found.</div>;
-
   function startEdit() {
+    if (!workout) return;
     setWorkoutForm({
       title: workout.title || "",
       workout_date: workout.workout_date || "",
@@ -104,6 +103,7 @@ export default function WorkoutDetail() {
   }
 
   async function saveAll() {
+    if (!workout) return;
     setLoading(true);
     setError(null);
     try {
@@ -111,7 +111,6 @@ export default function WorkoutDetail() {
         title: workoutForm.title,
         workout_date: workoutForm.workout_date,
       });
-      // update each exercise row
       for (const e of exerciseEdits) {
         await updateWorkoutExercise(e.id, {
           sets: Number(e.sets) || null,
@@ -119,7 +118,6 @@ export default function WorkoutDetail() {
           weight: e.weight === "" ? null : Number(e.weight),
         });
       }
-      // refresh
       const w = await getWorkout(workout.id);
       const ex = await getWorkoutExercises(workout.id);
       setWorkout(w);
@@ -154,6 +152,7 @@ export default function WorkoutDetail() {
 
   async function handleAddExercise() {
     if (!newExercise.name) return setAddExError("Name required");
+    if (!workout) return;
     setAddingEx(true);
     setAddExError(null);
     try {
@@ -216,142 +215,234 @@ export default function WorkoutDetail() {
     }
   }
 
-  return (
-    <div>
-      {!editing ? (
-        <>
-          <h2>{workout.title}</h2>
-          <div>
-            Date:{" "}
-            {workout.workout_date
-              ? new Date(workout.workout_date).toLocaleDateString()
-              : ""}
-          </div>
-          <button onClick={startEdit} style={{ marginTop: 8 }}>
-            Edit
-          </button>
-        </>
-      ) : (
-        <div>
-          <label>
-            Title:{" "}
-            <input
-              value={workoutForm.title}
-              onChange={(e) =>
-                setWorkoutForm((p) => ({ ...p, title: e.target.value }))
-              }
-            />
-          </label>
-          <br />
-          <label>
-            Date:{" "}
-            <input
-              type="date"
-              value={workoutForm.workout_date}
-              onChange={(e) =>
-                setWorkoutForm((p) => ({ ...p, workout_date: e.target.value }))
-              }
-            />
-          </label>
+  if (initialLoad) return <div className="text-muted">Loading workout...</div>;
+  if (!workout && error) return <div className="text-error">{error}</div>;
+  if (!workout) return <div className="text-error">Workout not found.</div>;
 
-          <h4 style={{ marginTop: 12 }}>Exercises</h4>
-          {exerciseEdits.map((ee, idx) => {
-            const meta = exercises.find((x) => x.id === ee.id);
-            return (
-              <div key={ee.id} style={{ marginBottom: 8 }}>
-                <div>
-                  <strong>{meta?.name || "Exercise"}</strong>
-                  {meta?.muscle_group && (
-                    <span style={{ marginLeft: 6, fontSize: 12 }}>
-                      ({meta.muscle_group})
-                    </span>
+  const formattedDate = formatDate(workout.workout_date);
+
+  return (
+    <section className="glass-panel stack--lg">
+      <div className="card stack">
+        <span className="pill">Workout detail</span>
+        {editing ? (
+          <div className="form-grid">
+            <div className="form-group">
+              <label htmlFor="detail-title">Title</label>
+              <input
+                id="detail-title"
+                className="input"
+                value={workoutForm.title}
+                onChange={(e) =>
+                  setWorkoutForm((p) => ({ ...p, title: e.target.value }))
+                }
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="detail-date">Date</label>
+              <input
+                id="detail-date"
+                type="date"
+                className="input"
+                value={workoutForm.workout_date}
+                onChange={(e) =>
+                  setWorkoutForm((p) => ({
+                    ...p,
+                    workout_date: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h1 className="page-heading">{workout.title}</h1>
+            <p className="text-muted">
+              {formattedDate ? `Scheduled for ${formattedDate}` : "No date set"}
+            </p>
+          </div>
+        )}
+        <div className="action-bar">
+          {editing ? (
+            <>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={saveAll}
+                disabled={saving}
+              >
+                {saving ? "Saving changes..." : "Save changes"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setEditing(false)}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={startEdit}
+              >
+                Edit workout
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={handleDeleteWorkout}
+                disabled={deleting}
+              >
+                {deleting ? "Deleting..." : "Delete workout"}
+              </button>
+            </>
+          )}
+        </div>
+        {saving && (
+          <div className="status-line text-muted">Saving changes...</div>
+        )}
+        {error && workout && <div className="text-error">{error}</div>}
+        {deleteError && <div className="text-error">{deleteError}</div>}
+      </div>
+
+      <div className="card stack">
+        <h3 className="section-heading">
+          {editing ? "Edit exercises" : "Exercises"}
+        </h3>
+        {removeError && <div className="text-error">{removeError}</div>}
+        {!editing ? (
+          exercises.length === 0 ? (
+            <div className="text-muted">No exercises logged yet.</div>
+          ) : (
+            <div className="stack stack--md">
+              {exercises.map((ex) => (
+                <article key={ex.id} className="exercise-result">
+                  <div>
+                    <strong>{ex.name}</strong>
+                    {ex.muscle_group && (
+                      <span className="text-muted"> ({ex.muscle_group})</span>
+                    )}
+                  </div>
+                  <div className="chip-group">
+                    <span className="chip">{ex.sets} sets</span>
+                    <span className="chip">{ex.reps} reps</span>
+                    {ex.weight && <span className="chip">{ex.weight} lb</span>}
+                    {ex.equipment && (
+                      <span className="chip">{ex.equipment}</span>
+                    )}
+                    {ex.difficulty && (
+                      <span className="chip">{ex.difficulty}</span>
+                    )}
+                  </div>
+                  {ex.instructions && (
+                    <p className="text-muted">{ex.instructions}</p>
                   )}
+                </article>
+              ))}
+            </div>
+          )
+        ) : (
+          <div className="stack stack--md">
+            {exerciseEdits.map((ee, idx) => {
+              const meta = exercises.find((x) => x.id === ee.id);
+              return (
+                <article key={ee.id} className="exercise-result">
+                  <div>
+                    <strong>{meta?.name || "Exercise"}</strong>
+                    {meta?.muscle_group && (
+                      <span className="text-muted"> ({meta.muscle_group})</span>
+                    )}
+                  </div>
                   {meta?.equipment && (
-                    <div style={{ fontSize: 12, color: "#555" }}>
+                    <div className="text-muted">
                       Equipment: {meta.equipment}
                     </div>
                   )}
                   {meta?.difficulty && (
-                    <div style={{ fontSize: 12, color: "#555" }}>
+                    <div className="text-muted">
                       Difficulty: {meta.difficulty}
                     </div>
                   )}
                   {meta?.instructions && (
-                    <div style={{ fontSize: 12, color: "#555" }}>
-                      Instructions: {meta.instructions}
-                    </div>
+                    <div className="text-muted">{meta.instructions}</div>
                   )}
-                </div>
-                <label style={{ marginLeft: 8 }}>
-                  Sets:{" "}
-                  <input
-                    type="number"
-                    value={ee.sets}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setExerciseEdits((s) =>
-                        s.map((s2, i) => (i === idx ? { ...s2, sets: v } : s2))
-                      );
-                    }}
-                    style={{ width: 60 }}
-                  />
-                </label>
-                <label style={{ marginLeft: 8 }}>
-                  Reps:{" "}
-                  <input
-                    type="number"
-                    value={ee.reps}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setExerciseEdits((s) =>
-                        s.map((s2, i) => (i === idx ? { ...s2, reps: v } : s2))
-                      );
-                    }}
-                    style={{ width: 60 }}
-                  />
-                </label>
-                <label style={{ marginLeft: 8 }}>
-                  Weight:{" "}
-                  <input
-                    value={ee.weight ?? ""}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setExerciseEdits((s) =>
-                        s.map((s2, i) =>
-                          i === idx ? { ...s2, weight: v } : s2
-                        )
-                      );
-                    }}
-                    style={{ width: 80 }}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveExercise(ee.id)}
-                  disabled={!!removingIds[ee.id]}
-                  style={{
-                    marginLeft: 8,
-                    background: "#b00020",
-                    color: "#fff",
-                  }}
-                >
-                  {removingIds[ee.id] ? "Removing..." : "Remove"}
-                </button>
-              </div>
-            );
-          })}
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label>Sets</label>
+                      <input
+                        type="number"
+                        className="input"
+                        value={ee.sets}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setExerciseEdits((s) =>
+                            s.map((s2, i) =>
+                              i === idx ? { ...s2, sets: v } : s2
+                            )
+                          );
+                        }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Reps</label>
+                      <input
+                        type="number"
+                        className="input"
+                        value={ee.reps}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setExerciseEdits((s) =>
+                            s.map((s2, i) =>
+                              i === idx ? { ...s2, reps: v } : s2
+                            )
+                          );
+                        }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Weight</label>
+                      <input
+                        className="input"
+                        value={ee.weight ?? ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setExerciseEdits((s) =>
+                            s.map((s2, i) =>
+                              i === idx ? { ...s2, weight: v } : s2
+                            )
+                          );
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => handleRemoveExercise(ee.id)}
+                    disabled={!!removingIds[ee.id]}
+                  >
+                    {removingIds[ee.id] ? "Removing..." : "Remove"}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-          <div
-            style={{
-              marginTop: 12,
-              borderTop: "1px solid #eee",
-              paddingTop: 12,
-            }}
-          >
-            <h5>Add Exercise</h5>
-            <label>
-              Name:{" "}
+      {editing && (
+        <div className="card stack">
+          <h3 className="section-heading">Add exercise</h3>
+          <div className="form-grid">
+            <div className="form-group">
+              <label htmlFor="new-ex-name">Name</label>
               <input
+                id="new-ex-name"
+                className="input"
                 value={newExercise.name}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -362,11 +453,13 @@ export default function WorkoutDetail() {
                   }));
                 }}
               />
-            </label>
-            <label style={{ marginLeft: 8 }}>
-              Sets:{" "}
+            </div>
+            <div className="form-group">
+              <label htmlFor="new-ex-sets">Sets</label>
               <input
+                id="new-ex-sets"
                 type="number"
+                className="input"
                 value={newExercise.sets}
                 onChange={(e) =>
                   setNewExercise((p) => ({
@@ -374,13 +467,14 @@ export default function WorkoutDetail() {
                     sets: Number(e.target.value),
                   }))
                 }
-                style={{ width: 60 }}
               />
-            </label>
-            <label style={{ marginLeft: 8 }}>
-              Reps:{" "}
+            </div>
+            <div className="form-group">
+              <label htmlFor="new-ex-reps">Reps</label>
               <input
+                id="new-ex-reps"
                 type="number"
+                className="input"
                 value={newExercise.reps}
                 onChange={(e) =>
                   setNewExercise((p) => ({
@@ -388,105 +482,55 @@ export default function WorkoutDetail() {
                     reps: Number(e.target.value),
                   }))
                 }
-                style={{ width: 60 }}
               />
-            </label>
-            <label style={{ marginLeft: 8 }}>
-              Weight:{" "}
+            </div>
+            <div className="form-group">
+              <label htmlFor="new-ex-weight">Weight</label>
               <input
+                id="new-ex-weight"
+                className="input"
                 value={newExercise.weight}
                 onChange={(e) =>
                   setNewExercise((p) => ({ ...p, weight: e.target.value }))
                 }
-                style={{ width: 80 }}
               />
-            </label>
-            <ExerciseSearch
-              title="Search exercises (API Ninjas)"
-              helperText="Pick a result to autofill the name."
-              onSelect={(meta) => {
-                if (!meta) return;
-                setNewExercise((p) => ({
-                  ...p,
-                  name: meta.name || "",
-                  meta,
-                }));
-              }}
-            />
-            <div style={{ marginTop: 8 }}>
-              <button
-                type="button"
-                onClick={handleAddExercise}
-                disabled={addingEx}
-              >
-                {addingEx ? "Adding..." : "Add Exercise"}
-              </button>
-              {addExError && (
-                <div style={{ color: "red", marginTop: 6 }}>{addExError}</div>
-              )}
             </div>
           </div>
-
-          <div>
-            <button onClick={saveAll} disabled={loading}>
-              {loading ? "Saving..." : "Save"}
-            </button>
-            <button onClick={() => setEditing(false)} style={{ marginLeft: 8 }}>
-              Cancel
-            </button>
+          <div className="action-bar">
             <button
-              onClick={handleDeleteWorkout}
-              disabled={deleting}
-              style={{
-                marginLeft: 8,
-                background: "#b00020",
-                color: "#fff",
-              }}
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={handleAddExercise}
+              disabled={addingEx}
             >
-              {deleting ? "Deleting..." : "Delete Workout"}
+              {addingEx ? "Adding..." : "Attach to workout"}
             </button>
-            {error && <div style={{ color: "red" }}>{error}</div>}
-            {deleteError && <div style={{ color: "red" }}>{deleteError}</div>}
+            {addExError && <div className="text-error">{addExError}</div>}
           </div>
+          <ExerciseSearch
+            title="Search exercises (API Ninjas)"
+            helperText="Pick a result to autofill the name."
+            onSelect={(meta) => {
+              if (!meta) return;
+              setNewExercise((p) => ({
+                ...p,
+                name: meta.name || "",
+                meta,
+              }));
+            }}
+          />
         </div>
       )}
-
-      <h3 style={{ marginTop: 16 }}>Exercises</h3>
-      {exercises.length === 0 ? (
-        <div>No exercises added to this workout.</div>
-      ) : (
-        <ul>
-          {exercises.map((ex) => (
-            <li key={ex.id}>
-              {ex.name} — {ex.sets} × {ex.reps}{" "}
-              {ex.weight ? `@ ${ex.weight}` : ""}
-              {ex.muscle_group && (
-                <span style={{ marginLeft: 4, fontSize: 12 }}>
-                  ({ex.muscle_group})
-                </span>
-              )}
-              {ex.equipment && (
-                <div style={{ fontSize: 12, color: "#555" }}>
-                  Equipment: {ex.equipment}
-                </div>
-              )}
-              {ex.difficulty && (
-                <div style={{ fontSize: 12, color: "#555" }}>
-                  Difficulty: {ex.difficulty}
-                </div>
-              )}
-              {ex.instructions && (
-                <div style={{ fontSize: 12, color: "#555" }}>
-                  Instructions: {ex.instructions}
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-      {removeError && (
-        <div style={{ color: "red", marginTop: 8 }}>{removeError}</div>
-      )}
-    </div>
+    </section>
   );
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  try {
+    return new Date(value).toLocaleDateString();
+  } catch (err) {
+    console.error("date format failed", err);
+    return value;
+  }
 }

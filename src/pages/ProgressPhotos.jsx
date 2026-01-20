@@ -195,17 +195,24 @@ export default function ProgressPhotos() {
   }
 
   if (authLoading) {
-    return <div>Loading...</div>;
+    return <div className="text-muted">Loading...</div>;
   }
 
   if (!user) {
-    return <div>Please log in to manage progress photos.</div>;
+    return (
+      <div className="text-muted">Please log in to manage progress photos.</div>
+    );
   }
 
   return (
-    <div>
-      <h2>Progress Photos</h2>
-      <p>Upload images to track how your training is going over time.</p>
+    <section className="glass-panel stack--lg">
+      <div className="stack">
+        <h1 className="page-heading">Progress Photos</h1>
+        <p className="page-subtitle">
+          Upload snapshots, jot a quick note, and watch your timeline glow over
+          time.
+        </p>
+      </div>
 
       <input
         ref={fileInputRef}
@@ -215,159 +222,102 @@ export default function ProgressPhotos() {
         onChange={handleFileChange}
       />
 
-      <div style={{ margin: "16px 0", maxWidth: 480 }}>
-        <label style={{ display: "block", textAlign: "left", marginBottom: 4 }}>
-          Optional note
-        </label>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="e.g. Week 4 cut-in, morning lighting"
-          rows={3}
-          style={{
-            width: "100%",
-            resize: "vertical",
-            padding: 8,
-            borderRadius: 6,
-            border: "1px solid #ddd",
-          }}
-          disabled={uploading}
-        />
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          flexWrap: "wrap",
-          alignItems: "center",
-        }}
-      >
-        <button onClick={handleFileClick} disabled={uploading}>
-          Choose Photo
-        </button>
-        <button onClick={handleUpload} disabled={!selectedFile || uploading}>
-          {uploading ? "Uploading..." : "Upload Photo"}
-        </button>
-        {uploading && <span>{uploadProgress}%</span>}
-      </div>
-
-      {selectedFile && (
-        <div
-          style={{
-            marginTop: 12,
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-          }}
-        >
-          <div style={{ fontSize: 14 }}>
-            Selected: <strong>{selectedFile.name}</strong>
-            <button
-              type="button"
-              onClick={clearSelectedFile}
-              disabled={uploading}
-              style={{ marginLeft: 8 }}
-            >
-              Clear
-            </button>
-          </div>
-          {previewUrl && (
-            <div
-              style={{
-                width: 180,
-                height: 180,
-                borderRadius: 8,
-                overflow: "hidden",
-                border: "1px solid #eee",
-              }}
-            >
-              <img
-                src={previewUrl}
-                alt="Preview"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
+      <div className="card stack">
+        <div className="form-group">
+          <label htmlFor="photo-note">Optional note</label>
+          <textarea
+            id="photo-note"
+            className="textarea"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="e.g. Week 4 cut-in, morning lighting"
+            rows={3}
+            disabled={uploading}
+          />
+        </div>
+        <div className="action-bar">
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={handleFileClick}
+            disabled={uploading}
+          >
+            Choose photo
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleUpload}
+            disabled={!selectedFile || uploading}
+          >
+            {uploading ? "Uploading..." : "Upload photo"}
+          </button>
+          {uploading && (
+            <span className="status-line text-muted">{uploadProgress}%</span>
           )}
         </div>
-      )}
 
-      {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
-
-      {loading ? (
-        <div style={{ marginTop: 16 }}>Loading photos…</div>
-      ) : photos.length === 0 ? (
-        <div style={{ marginTop: 16 }}>No photos uploaded yet.</div>
-      ) : (
-        <div
-          style={{
-            marginTop: 16,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {photos.map((photo) => (
-            <div
-              key={photo.path}
-              style={{
-                border: "1px solid #eee",
-                borderRadius: 8,
-                padding: 8,
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div
-                style={{
-                  background: "#ddd",
-                  borderRadius: 6,
-                  paddingTop: "100%",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
+        {selectedFile && (
+          <div className="upload-preview">
+            {previewUrl && (
+              <div className="upload-preview__thumb">
+                <img src={previewUrl} alt="Preview" />
+              </div>
+            )}
+            <div className="upload-preview__meta">
+              <div>
+                <span className="text-muted">Selected:</span>{" "}
+                <strong>{selectedFile.name}</strong>
+              </div>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={clearSelectedFile}
+                disabled={uploading}
               >
+                Clear selection
+              </button>
+            </div>
+          </div>
+        )}
+
+        {error && <div className="text-error">{error}</div>}
+      </div>
+
+      <div className="card stack">
+        <h3 className="section-heading">Your timeline</h3>
+        {loading ? (
+          <div className="text-muted">Loading photos...</div>
+        ) : photos.length === 0 ? (
+          <div className="text-muted">No photos uploaded yet.</div>
+        ) : (
+          <div className="photo-grid">
+            {photos.map((photo) => (
+              <article key={photo.path} className="photo-card">
                 <img
+                  className="photo-card__img"
                   src={photo.url}
                   alt={photo.name}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
                 />
-              </div>
-              <div style={{ marginTop: 8 }}>
-                <div style={{ fontSize: 12, color: "#555" }}>
-                  {formatDate(photo.uploadedAt)}
+                <div className="photo-card__body">
+                  <div className="photo-meta">
+                    {formatDate(photo.uploadedAt)}
+                  </div>
+                  {photo.note && <p>{photo.note}</p>}
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-sm btn-block"
+                    onClick={() => handleDelete(photo.path)}
+                    disabled={deletingPath === photo.path}
+                  >
+                    {deletingPath === photo.path ? "Deleting..." : "Delete"}
+                  </button>
                 </div>
-                {photo.note && (
-                  <div style={{ fontSize: 12, marginTop: 4 }}>{photo.note}</div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => handleDelete(photo.path)}
-                  disabled={deletingPath === photo.path}
-                  style={{
-                    marginTop: 6,
-                    width: "100%",
-                    background: "#b00020",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "6px 0",
-                  }}
-                >
-                  {deletingPath === photo.path ? "Deleting…" : "Delete"}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

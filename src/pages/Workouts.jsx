@@ -23,30 +23,44 @@ export default function Workouts() {
   }, [apiUser]);
 
   return (
-    <div>
-      <h2>Workouts</h2>
-      {loading ? (
-        <div>Loading workouts...</div>
-      ) : error ? (
-        <div style={{ color: "red" }}>{error}</div>
-      ) : workouts.length === 0 ? (
-        <div>No workouts yet. Create your first workout.</div>
-      ) : (
-        <ul>
-          {workouts.map((w) => (
-            <li key={w.id}>
-              <Link to={`/workouts/${w.id}`}>
-                {w.title}{" "}
-                {w.workout_date
-                  ? `— ${new Date(w.workout_date).toLocaleDateString()}`
-                  : ""}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+    <section className="glass-panel stack">
+      <div className="stack">
+        <h1 className="page-heading">Workouts</h1>
+        <p className="page-subtitle">
+          Browse every session you have logged so far.
+        </p>
+        <div className="action-bar">
+          <Link to="/workouts/new" className="btn btn-primary">
+            Create Workout
+          </Link>
+        </div>
+      </div>
 
-      <Link to="/workouts/new">Create new workout</Link>
-    </div>
+      <div className="card">
+        <div className="section-heading">All Workouts</div>
+        {loading ? (
+          <div className="text-muted">Loading workouts...</div>
+        ) : error ? (
+          <div className="text-error">{error}</div>
+        ) : workouts.length === 0 ? (
+          <div className="text-muted">
+            No workouts yet. Create your first one.
+          </div>
+        ) : (
+          <ul className="data-list">
+            {workouts.map((w) => (
+              <li key={w.id} className="data-row">
+                <Link to={`/workouts/${w.id}`}>{w.title}</Link>
+                <span className="text-muted">
+                  {w.workout_date
+                    ? new Date(w.workout_date).toLocaleDateString()
+                    : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }
