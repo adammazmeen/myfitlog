@@ -1,12 +1,33 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function NavBar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinkClass = ({ isActive }) =>
     isActive ? "nav-link is-active" : "nav-link";
+
+  const authedNav = [
+    { to: "/dashboard", label: "Dashboard" },
+    { to: "/workouts", label: "Workouts" },
+    { to: "/progress", label: "Progress" },
+    { to: "/about", label: "About" },
+  ];
+
+  const guestNav = [{ to: "/about", label: "About" }];
+
+  const navItems = user ? authedNav : guestNav;
+
+  function toggleMenu() {
+    setIsMenuOpen((prev) => !prev);
+  }
+
+  function handleNavSelection() {
+    setIsMenuOpen(false);
+  }
 
   async function handleLogout() {
     try {
@@ -14,55 +35,64 @@ export default function NavBar() {
       navigate("/");
     } catch (err) {
       console.warn("logout failed", err);
+    } finally {
+      setIsMenuOpen(false);
     }
   }
 
   return (
-    <header className="nav-shell">
-      <NavLink to="/" className="nav-brand" end>
+    <header className={`nav-shell ${isMenuOpen ? "nav-shell--open" : ""}`}>
+      <NavLink to="/" className="nav-brand" end onClick={handleNavSelection}>
         MyFitLog
       </NavLink>
-      <div className="nav-links">
-        <NavLink to="/" className={navLinkClass} end>
-          Home
-        </NavLink>
-        {user && (
-          <>
-            <NavLink to="/dashboard" className={navLinkClass}>
-              Dashboard
-            </NavLink>
-            <NavLink to="/workouts" className={navLinkClass}>
-              Workouts
-            </NavLink>
-            <NavLink to="/workouts/new" className={navLinkClass}>
-              New Workout
-            </NavLink>
-            <NavLink to="/progress" className={navLinkClass}>
-              Progress
-            </NavLink>
-          </>
-        )}
-        <NavLink to="/about" className={navLinkClass}>
-          About
-        </NavLink>
-      </div>
-      <div className="nav-links">
+      <button
+        type="button"
+        className="nav-toggle"
+        aria-label="Toggle navigation"
+        aria-expanded={isMenuOpen}
+        onClick={toggleMenu}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+      <nav className="nav-links nav-links--primary">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={navLinkClass}
+            onClick={handleNavSelection}
+          >
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+      <div className="nav-links nav-links--actions">
         {user ? (
           <button
             type="button"
-            className="btn btn-outline"
+            className="btn btn-outline btn-sm"
             onClick={handleLogout}
           >
             Logout
           </button>
         ) : (
           <>
-            <NavLink to="/login" className={navLinkClass}>
+            <NavLink
+              to="/login"
+              className={navLinkClass}
+              onClick={handleNavSelection}
+            >
               Login
             </NavLink>
-            <NavLink to="/register" className={navLinkClass}>
+            <Link
+              to="/register"
+              className="btn btn-primary btn-sm"
+              onClick={handleNavSelection}
+            >
               Sign Up
-            </NavLink>
+            </Link>
           </>
         )}
       </div>
