@@ -42,20 +42,22 @@ export default function NavBar() {
 
   return (
     <header className={`nav-shell ${isMenuOpen ? "nav-shell--open" : ""}`}>
-      <NavLink to="/" className="nav-brand" end onClick={handleNavSelection}>
-        MyFitLog
-      </NavLink>
-      <button
-        type="button"
-        className="nav-toggle"
-        aria-label="Toggle navigation"
-        aria-expanded={isMenuOpen}
-        onClick={toggleMenu}
-      >
-        <span />
-        <span />
-        <span />
-      </button>
+      <div className="nav-header">
+        <NavLink to="/" className="nav-brand" end onClick={handleNavSelection}>
+          MyFitLog
+        </NavLink>
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-label="Toggle navigation"
+          aria-expanded={isMenuOpen}
+          onClick={toggleMenu}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </div>
       <nav className="nav-links nav-links--primary">
         {navItems.map((item) => (
           <NavLink
