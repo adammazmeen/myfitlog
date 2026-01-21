@@ -80,7 +80,7 @@ export default function WorkoutDetail() {
           sets: ex.sets,
           reps: ex.reps,
           weight: ex.weight,
-        }))
+        })),
       );
     }
   }, [workout, exercises, editing]);
@@ -97,7 +97,7 @@ export default function WorkoutDetail() {
         sets: ex.sets,
         reps: ex.reps,
         weight: ex.weight,
-      }))
+      })),
     );
     setEditing(true);
   }
@@ -134,7 +134,7 @@ export default function WorkoutDetail() {
   async function handleDeleteWorkout() {
     if (!workout?.id) return;
     const confirmed = window.confirm(
-      "Delete this workout? This cannot be undone."
+      "Delete this workout? This cannot be undone.",
     );
     if (!confirmed) return;
     setDeleting(true);
@@ -180,7 +180,7 @@ export default function WorkoutDetail() {
           sets: ex.sets,
           reps: ex.reps,
           weight: ex.weight,
-        }))
+        })),
       );
       setNewExercise({ name: "", sets: 3, reps: 8, weight: "", meta: null });
     } catch (err) {
@@ -201,7 +201,7 @@ export default function WorkoutDetail() {
       await deleteWorkoutExercise(workoutExerciseId);
       setExercises((prev) => prev.filter((ex) => ex.id !== workoutExerciseId));
       setExerciseEdits((prev) =>
-        prev.filter((ex) => ex.id !== workoutExerciseId)
+        prev.filter((ex) => ex.id !== workoutExerciseId),
       );
     } catch (err) {
       console.error("Failed to remove workout exercise", err);
@@ -330,7 +330,7 @@ export default function WorkoutDetail() {
                   <div className="chip-group">
                     <span className="chip">{ex.sets} sets</span>
                     <span className="chip">{ex.reps} reps</span>
-                    {ex.weight && <span className="chip">{ex.weight} lb</span>}
+                    {ex.weight && <span className="chip">{ex.weight} kg</span>}
                     {ex.equipment && (
                       <span className="chip">{ex.equipment}</span>
                     )}
@@ -381,8 +381,8 @@ export default function WorkoutDetail() {
                           const v = e.target.value;
                           setExerciseEdits((s) =>
                             s.map((s2, i) =>
-                              i === idx ? { ...s2, sets: v } : s2
-                            )
+                              i === idx ? { ...s2, sets: v } : s2,
+                            ),
                           );
                         }}
                       />
@@ -397,14 +397,14 @@ export default function WorkoutDetail() {
                           const v = e.target.value;
                           setExerciseEdits((s) =>
                             s.map((s2, i) =>
-                              i === idx ? { ...s2, reps: v } : s2
-                            )
+                              i === idx ? { ...s2, reps: v } : s2,
+                            ),
                           );
                         }}
                       />
                     </div>
                     <div className="form-group">
-                      <label>Weight</label>
+                      <label>Weight (kg)</label>
                       <input
                         className="input"
                         value={ee.weight ?? ""}
@@ -412,8 +412,8 @@ export default function WorkoutDetail() {
                           const v = e.target.value;
                           setExerciseEdits((s) =>
                             s.map((s2, i) =>
-                              i === idx ? { ...s2, weight: v } : s2
-                            )
+                              i === idx ? { ...s2, weight: v } : s2,
+                            ),
                           );
                         }}
                       />
@@ -485,7 +485,7 @@ export default function WorkoutDetail() {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="new-ex-weight">Weight</label>
+              <label htmlFor="new-ex-weight">Weight (kg)</label>
               <input
                 id="new-ex-weight"
                 className="input"

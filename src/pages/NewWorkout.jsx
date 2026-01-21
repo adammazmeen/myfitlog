@@ -75,7 +75,7 @@ export default function NewWorkout() {
           setError(
             `Failed to attach ${failed.length} exercise(s): ${failed
               .map((f) => f.name)
-              .join(", ")}`
+              .join(", ")}`,
           );
         }
       }
@@ -171,7 +171,7 @@ export default function NewWorkout() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="exercise-weight">Weight</label>
+            <label htmlFor="exercise-weight">Weight (kg)</label>
             <input
               id="exercise-weight"
               value={exWeight}
