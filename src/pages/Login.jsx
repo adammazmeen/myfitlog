@@ -1,22 +1,22 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
+    setSubmitting(true);
     try {
       await login(email, password);
-      navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Login failed");
+      setSubmitting(false);
     }
   }
 
@@ -52,8 +52,12 @@ export default function Login() {
           />
         </div>
         {error && <div className="text-error">{error}</div>}
-        <button type="submit" className="btn btn-primary btn-block">
-          Login
+        <button
+          type="submit"
+          className="btn btn-primary btn-block"
+          disabled={submitting}
+        >
+          {submitting ? "Logging in..." : "Login"}
         </button>
       </form>
     </section>

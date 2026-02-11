@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Register() {
@@ -7,18 +6,19 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
   const { register } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
     if (password !== confirm) return setError("Passwords do not match");
+    setSubmitting(true);
     try {
       await register(email, password);
-      navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Registration failed");
+      setSubmitting(false);
     }
   }
 
@@ -68,8 +68,12 @@ export default function Register() {
           />
         </div>
         {error && <div className="text-error">{error}</div>}
-        <button type="submit" className="btn btn-primary btn-block">
-          Register
+        <button
+          type="submit"
+          className="btn btn-primary btn-block"
+          disabled={submitting}
+        >
+          {submitting ? "Registering..." : "Register"}
         </button>
       </form>
     </section>
