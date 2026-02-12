@@ -18,7 +18,7 @@ export default function Dashboard() {
   }, [apiUser]);
 
   return (
-    <section className="glass-panel stack--lg">
+    <section className="glass-panel stack stack--lg">
       <div className="stack">
         <div className="pill">Signed in as {apiUser?.email || ""}</div>
         <h1 className="page-heading">Dashboard</h1>
